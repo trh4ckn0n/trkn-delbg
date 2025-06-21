@@ -59,6 +59,9 @@ def index():
     return render_template("index.html", download_url=None)
 
 
+import subprocess
+import tempfile
+
 def process_video(input_video, background_img, output_path):
     cap = cv2.VideoCapture(input_video)
     if not cap.isOpened():
@@ -71,8 +74,12 @@ def process_video(input_video, background_img, output_path):
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
+    # fichier temporaire pour vidéo sans audio
+    tmp_video_fd, tmp_video_path = tempfile.mkstemp(suffix=".mp4")
+    os.close(tmp_video_fd)
+
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    out = cv2.VideoWriter(tmp_video_path, fourcc, fps, (width, height))
 
     background = cv2.imread(background_img)
     if background is None:
@@ -87,18 +94,39 @@ def process_video(input_video, background_img, output_path):
         frame_idx += 1
         print(f"[INFO] Traitement frame {frame_idx}")
 
-        # rembg avec session pour accélérer
         rgba = remove(frame, session=rembg_session)
         alpha = rgba[:, :, 3] / 255.0
         fg = rgba[:, :, :3]
 
-        # composite foreground + background
         composite = (fg * alpha[..., None] + background * (1 - alpha[..., None])).astype(np.uint8)
         out.write(composite)
 
     cap.release()
     out.release()
 
+    # Extraction audio de la vidéo originale
+    tmp_audio_fd, tmp_audio_path = tempfile.mkstemp(suffix=".aac")
+    os.close(tmp_audio_fd)
+    extract_audio_cmd = [
+        "ffmpeg", "-y", "-i", input_video,
+        "-vn", "-acodec", "copy", tmp_audio_path
+    ]
+    subprocess.run(extract_audio_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+
+    # Fusion de la vidéo traitée + audio original
+    merge_cmd = [
+        "ffmpeg", "-y",
+        "-i", tmp_video_path,
+        "-i", tmp_audio_path,
+        "-c:v", "copy",
+        "-c:a", "copy",
+        output_path
+    ]
+    subprocess.run(merge_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+
+    # Suppression fichiers temporaires
+    os.remove(tmp_video_path)
+    os.remove(tmp_audio_path)
 
 @app.route('/static/output/<filename>')
 def download_file(filename):
