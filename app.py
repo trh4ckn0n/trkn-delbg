@@ -54,9 +54,7 @@ def add_watermark(frame, text="by trhacknon background remover", pos=(10,30), fo
     overlay = frame.copy()
     font = cv2.FONT_HERSHEY_SIMPLEX
     thickness = 2
-    # Texte semi-transparent
     cv2.putText(overlay, text, pos, font, font_scale, color, thickness, cv2.LINE_AA)
-    # Fusionner avec l'image originale
     return cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0)
 
 def process_video(input_video, background_img, output_path, model_name, watermark=False):
@@ -134,6 +132,7 @@ def index():
         video_file = request.files.get("video")
         background_file = request.files.get("background")
         model_name = request.form.get("model")
+        mode = request.form.get("mode", "with_password")
         password = request.form.get("password", "")
 
         if not video_file or not background_file:
@@ -161,10 +160,15 @@ def index():
         output_filename = f"output_{os.path.splitext(video_filename)[0]}.mp4"
         output_path = os.path.join(app.config['UPLOAD_FOLDER'], output_filename)
 
-        # Vérifier mot de passe : si correct, pas de watermark, sinon watermark activé
+        # Gestion watermark selon mode et mot de passe
         watermark_mode = True
-        if APP_PASSWORD and password == APP_PASSWORD:
-            watermark_mode = False
+        if mode == "with_password":
+            if APP_PASSWORD and password == APP_PASSWORD:
+                watermark_mode = False  # pas de watermark si mot de passe correct
+            else:
+                flash("Mot de passe incorrect ou manquant, le watermark sera ajouté.")
+        else:
+            watermark_mode = True  # toujours watermark si mode sans mot de passe
 
         try:
             process_video(video_path, bg_path, output_path, model_name, watermark=watermark_mode)
