@@ -1,0 +1,42 @@
+body {
+    background-color: #121212;
+    color: #00FFAB;
+    font-family: 'Consolas', monospace;
+    padding: 20px;
+}
+input, select, button {
+    background-color: #222;
+    border: 1px solid #00FFAB;
+    color: #00FFAB;
+    padding: 8px;
+    margin: 5px 0;
+    font-size: 1rem;
+}
+button:hover {
+    background-color: #00FFAB;
+    color: #121212;
+    cursor: pointer;
+}
+.flash {
+    border: 1px solid #00FFAB;
+    background: #001a0a;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+a.download-link {
+    color: #00FFAB;
+    text-decoration: underline;
+}
+fieldset {
+    border: 1px solid #00FFAB;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+legend {
+    color: #00FFAB;
+    font-weight: bold;
+}
+label.radio-label {
+    margin-right: 20px;
+    cursor: pointer;
+}
