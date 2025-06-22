@@ -33,6 +33,19 @@ a.download-link {
     color: #00FFAB;
     text-decoration: underline;
 }
+fieldset {
+    border: 1px solid #00FFAB;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+legend {
+    color: #00FFAB;
+    font-weight: bold;
+}
+label.radio-label {
+    margin-right: 20px;
+    cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -60,6 +73,19 @@ a.download-link {
         {% endfor %}
     </select><br>
 
+    <fieldset>
+        <legend>Options d'utilisation :</legend>
+        <label class="radio-label">
+            <input type="radio" name="mode" value="with_password" checked> Avec mot de passe (pas de watermark)
+        </label>
+        <label class="radio-label">
+            <input type="radio" name="mode" value="without_password"> Sans mot de passe (watermark discret ajouté)
+        </label>
+        <br>
+        <label for="password">Mot de passe (uniquement si mode avec mot de passe) :</label><br>
+        <input type="password" name="password" id="password" placeholder="Entrez le mot de passe"><br>
+    </fieldset>
+
     <button type="submit">Lancer le traitement</button>
 </form>
 
@@ -67,5 +93,26 @@ a.download-link {
     <h2>Télécharger la vidéo traitée :</h2>
     <a href="{{ download_url }}" class="download-link" target="_blank">{{ download_url }}</a>
 {% endif %}
+
+<script>
+// Désactivation du champ mot de passe si mode "sans mot de passe"
+const radios = document.querySelectorAll('input[name="mode"]');
+const passwordInput = document.getElementById('password');
+
+function togglePasswordInput() {
+    if(document.querySelector('input[name="mode"]:checked').value === 'with_password') {
+        passwordInput.disabled = false;
+    } else {
+        passwordInput.disabled = true;
+        passwordInput.value = '';
+    }
+}
+
+radios.forEach(radio => {
+    radio.addEventListener('change', togglePasswordInput);
+});
+togglePasswordInput();
+</script>
+
 </body>
 </html>
