@@ -6,6 +6,9 @@ from rembg import new_session, remove
 from werkzeug.utils import secure_filename
 import tempfile
 import subprocess
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "trhacknon_secret_key"
@@ -24,13 +27,13 @@ MODELS = {
     "u2net_cloth_seg": "Optimisé pour vêtements",
 }
 
+APP_PASSWORD = os.getenv("APP_PASSWORD", "")
+
 def allowed_file(filename, allowed_set):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_set
 
 def preprocess_frame(frame):
-    # Convertir en RGB
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    # CLAHE pour améliorer contraste local
     lab = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2LAB)
     l, a, b = cv2.split(lab)
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
@@ -47,7 +50,16 @@ def postprocess_alpha(alpha_channel):
     alpha = alpha.astype(np.float32) / 255.0
     return alpha
 
-def process_video(input_video, background_img, output_path, model_name):
+def add_watermark(frame, text="by trhacknon background remover", pos=(10,30), font_scale=1.0, color=(255,255,255), alpha=0.4):
+    overlay = frame.copy()
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    thickness = 2
+    # Texte semi-transparent
+    cv2.putText(overlay, text, pos, font, font_scale, color, thickness, cv2.LINE_AA)
+    # Fusionner avec l'image originale
+    return cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0)
+
+def process_video(input_video, background_img, output_path, model_name, watermark=False):
     rembg_session = new_session(model_name)
 
     cap = cv2.VideoCapture(input_video)
@@ -86,6 +98,10 @@ def process_video(input_video, background_img, output_path, model_name):
         fg = rgba[:, :, :3]
 
         composite = (fg * alpha[..., None] + background * (1 - alpha[..., None])).astype(np.uint8)
+
+        if watermark:
+            composite = add_watermark(composite)
+
         out.write(composite)
 
     cap.release()
@@ -118,6 +134,7 @@ def index():
         video_file = request.files.get("video")
         background_file = request.files.get("background")
         model_name = request.form.get("model")
+        password = request.form.get("password", "")
 
         if not video_file or not background_file:
             flash("Merci de fournir une vidéo ET une image de fond.")
@@ -144,8 +161,13 @@ def index():
         output_filename = f"output_{os.path.splitext(video_filename)[0]}.mp4"
         output_path = os.path.join(app.config['UPLOAD_FOLDER'], output_filename)
 
+        # Vérifier mot de passe : si correct, pas de watermark, sinon watermark activé
+        watermark_mode = True
+        if APP_PASSWORD and password == APP_PASSWORD:
+            watermark_mode = False
+
         try:
-            process_video(video_path, bg_path, output_path, model_name)
+            process_video(video_path, bg_path, output_path, model_name, watermark=watermark_mode)
             flash("Traitement terminé avec succès !")
             return render_template("index.html", download_url=url_for('download_file', filename=output_filename), models=MODELS, selected_model=model_name)
         except Exception as e:
