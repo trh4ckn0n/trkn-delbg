@@ -1,86 +1,71 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Suppression Fond Vidéo - trhacknon</title>
-    <style>
-        body {
-            background: #0f0f0f;
-            color: #eee;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center;
-            padding: 2rem;
-        }
-        h1 {
-            color: #0ff;
-            margin-bottom: 1rem;
-        }
-        form {
-            background: #222;
-            padding: 1.5rem;
-            border-radius: 8px;
-            display: inline-block;
-            max-width: 480px;
-            width: 100%;
-        }
-        input[type="file"] {
-            margin: 0.5rem 0 1.5rem;
-            width: 100%;
-            color: #0ff;
-            background: #111;
-            border: 1px solid #0ff;
-            border-radius: 4px;
-            padding: 0.5rem;
-        }
-        button {
-            background: #0ff;
-            border: none;
-            padding: 0.7rem 1.5rem;
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: #000;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        button:hover {
-            background: #33ffff;
-        }
-        .flash {
-            margin-bottom: 1rem;
-            color: #f00;
-            font-weight: bold;
-        }
-        .download-link {
-            margin-top: 2rem;
-            display: block;
-            font-size: 1.2rem;
-            color: #0ff;
-            text-decoration: none;
-        }
-        .download-link:hover {
-            text-decoration: underline;
-        }
-    </style>
+<meta charset="UTF-8" />
+<title>Background Removal Vidéo - trhacknon</title>
+<style>
+body {
+    background-color: #121212;
+    color: #00FFAB;
+    font-family: 'Consolas', monospace;
+    padding: 20px;
+}
+input, select, button {
+    background-color: #222;
+    border: 1px solid #00FFAB;
+    color: #00FFAB;
+    padding: 8px;
+    margin: 5px 0;
+    font-size: 1rem;
+}
+button:hover {
+    background-color: #00FFAB;
+    color: #121212;
+    cursor: pointer;
+}
+.flash {
+    border: 1px solid #00FFAB;
+    background: #001a0a;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+a.download-link {
+    color: #00FFAB;
+    text-decoration: underline;
+}
+</style>
 </head>
 <body>
-    <h1>Suppression du fond de vidéo (trhacknon)</h1>
+<h1>Background Removal Vidéo - trhacknon</h1>
 
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="flash">{{ messages[0] }}</div>
-      {% endif %}
-    {% endwith %}
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for msg in messages %}
+      <div class="flash">{{ msg }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 
-    <form method="post" enctype="multipart/form-data">
-        <input type="file" name="video" accept="video/*" required />
-        <input type="file" name="background" accept="image/*" required />
-        <button type="submit">Lancer le traitement</button>
-    </form>
+<form method="POST" enctype="multipart/form-data">
+    <label>Vidéo (mp4, mov, avi, mkv, webm):</label><br>
+    <input type="file" name="video" accept="video/*" required><br>
 
-    {% if download_url %}
-      <a href="{{ download_url }}" class="download-link" download>Télécharger la vidéo traitée</a>
-    {% endif %}
+    <label>Image de fond (jpg, jpeg, png):</label><br>
+    <input type="file" name="background" accept="image/*" required><br>
+
+    <label>Modèle de suppression de background :</label><br>
+    <select name="model" required>
+        {% for key, desc in models.items() %}
+        <option value="{{ key }}" {% if selected_model == key %}selected{% endif %}>{{ key }} - {{ desc }}</option>
+        {% endfor %}
+    </select><br>
+
+    <button type="submit">Lancer le traitement</button>
+</form>
+
+{% if download_url %}
+    <h2>Télécharger la vidéo traitée :</h2>
+    <a href="{{ download_url }}" class="download-link" target="_blank">{{ download_url }}</a>
+{% endif %}
 </body>
 </html>
