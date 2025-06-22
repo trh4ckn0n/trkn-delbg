@@ -49,6 +49,12 @@ pip install -r requirements.txt
 python app.py
 ```
 
+or
+
+```bash
+gunicorn -w 4 -b 0.0.0.0:5000 app:app
+```
+
 2. Ouvrir dans le navigateur :  
 [https://trkn-delbg.onrender.com](https://trkn-delbg.onrender.com) (démo en ligne)  
 ou  
