@@ -50,7 +50,7 @@ def postprocess_alpha(alpha_channel):
     alpha = alpha.astype(np.float32) / 255.0
     return alpha
 
-def add_watermark(frame, text="by trhacknon background remover", pos=(10,30), font_scale=1.0, color=(255,255,255), alpha=0.4):
+def add_watermark(frame, text="by trhacknon background remover", pos=(10, frame.shape[0] - 30), color=(0,255,0), alpha=0.7):
     overlay = frame.copy()
     font = cv2.FONT_HERSHEY_SIMPLEX
     thickness = 2
