@@ -36,6 +36,8 @@ git clone https://github.com/trh4ckn0n/trkn-delbg.git cd trkn-delbg
 pip install -r requirements.txt
 ```
 
+add APP_PASSWORD dans .env
+
 > **Remarque** : Si `requirements.txt` n’est pas présent, installer manuellement :  
 > `pip install flask rembg opencv-python-headless numpy`
 
